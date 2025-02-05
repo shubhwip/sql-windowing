@@ -1,0 +1,76 @@
+{
+  "datasource": {
+    "type": "postgres",
+    "uid": "d4df4b8e-a132-43d8-abcf-ebb10fb89ec3"
+  },
+  "fieldConfig": {
+    "defaults": {
+      "mappings": [],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          },
+          {
+            "color": "red",
+            "value": 80
+          }
+        ]
+      },
+      "color": {
+        "mode": "thresholds"
+      }
+    },
+    "overrides": []
+  },
+  "gridPos": {
+    "h": 10,
+    "w": 24,
+    "x": 0,
+    "y": 0
+  },
+  "id": 1,
+  "options": {
+    "monochrome": false,
+    "color": "blue",
+    "nodeColor": "grey",
+    "nodeWidth": 30,
+    "nodePadding": 30,
+    "labelSize": 14,
+    "iteration": 7
+  },
+  "targets": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "d4df4b8e-a132-43d8-abcf-ebb10fb89ec3"
+      },
+      "editorMode": "code",
+      "format": "table",
+      "rawQuery": true,
+      "rawSql": "with row_rank as (\nselect\n\tid,\n\tstatus,\n\tupdated_at,\n\trow_number() over\n         (partition by id\norder by\n\tstatus) as status_row_number\nfrom\n\tgrafana_table gt\n)\n\nselect\n\tr.status as source_status,\n\tg.status as destination_status,\n\textract(EPOCH\nfrom\n\t(g.updated_at - r.updated_at)) as time_taken_seconds\nfrom\n\trow_rank r\ncross join grafana_table g\nwhere\n\tr.id = g.id\n\tand r.status <> g.status\n\tand g.updated_at > r.updated_at\nlimit 100",
+      "refId": "A",
+      "sql": {
+        "columns": [
+          {
+            "parameters": [],
+            "type": "function"
+          }
+        ],
+        "groupBy": [
+          {
+            "property": {
+              "type": "string"
+            },
+            "type": "groupBy"
+          }
+        ],
+        "limit": 50
+      }
+    }
+  ],
+  "title": "Tracking Transitions",
+  "type": "netsage-sankey-panel"
+}
